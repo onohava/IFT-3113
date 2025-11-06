@@ -3,7 +3,7 @@ using UnityEngine;
 public class CheckpointLine : MonoBehaviour
 {
     [Header("Visual Settings")]
-    [SerializeField] private Color inactiveColor = new Color(0.5f, 1f, 0.5f, 0.2f); // Weiß, halbtransparent
+    [SerializeField] private Color inactiveColor = new Color(0.5f, 1f, 0.5f, 0.2f);
     [SerializeField] private Color activeColor = new Color(0.5f, 1f, 0.5f, 0.6f); 
     [SerializeField] private float fadeSpeed = 2f;
     
@@ -22,18 +22,16 @@ public class CheckpointLine : MonoBehaviour
         
         if (spriteRenderer == null)
         {
-            Debug.LogError($"CheckpointLine '{gameObject.name}': Kein SpriteRenderer gefunden!");
+            Debug.LogError($"CheckpointLine '{gameObject.name}': No SpriteRenderer found!");
         }
         else
         {
-            // Setze initiale Farbe
             spriteRenderer.color = inactiveColor;
         }
     }
     
     private void Update()
     {
-        // Smooth Fade-Effekt beim Aktivieren
         if (isFading && spriteRenderer != null)
         {
             fadeProgress += Time.deltaTime * fadeSpeed;
@@ -49,10 +47,8 @@ public class CheckpointLine : MonoBehaviour
     
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        // Nur beim ersten Mal aktivieren
         if (isActivated) return;
         
-        // Prüfe ob es der Player ist
         bool isPlayer = false;
         
         if (useTag)
@@ -72,27 +68,22 @@ public class CheckpointLine : MonoBehaviour
     
     private void ActivateCheckpoint(GameObject player)
     {
-        // Markiere als aktiviert
         isActivated = true;
-        
-        // Starte Farbwechsel
         isFading = true;
         fadeProgress = 0f;
         
-        // Informiere den Player über den neuen Checkpoint
         PlayerMovementInputSystem playerMovement = player.GetComponent<PlayerMovementInputSystem>();
         if (playerMovement != null)
         {
             playerMovement.SetCheckpoint(transform.position);
-            Debug.Log($"Checkpoint '{gameObject.name}' aktiviert an Position: {transform.position}");
+            Debug.Log($"Checkpoint '{gameObject.name}' activated at position: {transform.position}");
         }
         else
         {
-            Debug.LogWarning($"CheckpointLine '{gameObject.name}': PlayerMovementInputSystem nicht gefunden!");
+            Debug.LogWarning($"CheckpointLine '{gameObject.name}': PlayerMovementInputSystem not found!");
         }
     }
     
-    // Optional: Zum Debugging - zeigt den Status in der Scene View
     private void OnDrawGizmos()
     {
         Gizmos.color = isActivated ? Color.green : Color.white;

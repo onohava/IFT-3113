@@ -8,7 +8,7 @@ public class Finish : MonoBehaviour
     
     [Header("Visual Feedback")]
     [SerializeField] private bool changeColorOnActivation = true;
-    [SerializeField] private Color completedColor = new Color(1f, 0.84f, 0f, 1f); // Gold
+    [SerializeField] private Color completedColor = new Color(1f, 0.84f, 0f, 1f);
     
     private bool levelCompleted = false;
     private SpriteRenderer spriteRenderer;
@@ -20,10 +20,8 @@ public class Finish : MonoBehaviour
     
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        // Nur einmal auslösen
         if (levelCompleted) return;
         
-        // Prüfe ob es der Player ist
         bool isPlayer = false;
         
         if (useTag)
@@ -45,15 +43,13 @@ public class Finish : MonoBehaviour
     {
         levelCompleted = true;
         
-        // Visuelles Feedback
         if (changeColorOnActivation && spriteRenderer != null)
         {
             spriteRenderer.color = completedColor;
         }
         
-        Debug.Log("Level Complete! Finish erreicht.");
+        Debug.Log("Level Complete! Finish reached.");
         
-        // Benachrichtige den LevelCompleteManager (sucht auch in deaktivierten GameObjects)
         LevelCompleteManager manager = FindObjectOfType<LevelCompleteManager>(true);
         if (manager != null)
         {
@@ -61,7 +57,7 @@ public class Finish : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("Finish: Kein LevelCompleteManager in der Szene gefunden!");
+            Debug.LogWarning("Finish: No LevelCompleteManager found in scene!");
         }
     }
 }
