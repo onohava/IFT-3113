@@ -5,7 +5,7 @@ public class DeadlyObstacle : MonoBehaviour
     [Header("Settings")]
     [SerializeField] private bool useTag = true;
     [SerializeField] private string playerTag = "Player";
-    
+
     [Header("Optional")]
     [SerializeField] private bool useTrigger = true;
     
@@ -17,7 +17,7 @@ public class DeadlyObstacle : MonoBehaviour
         if (useTag && collision.CompareTag(playerTag))
         {
             // Hole das PlayerMovementInputSystem und rufe Die() auf
-            PlayerMovementInputSystem player = collision.GetComponent<PlayerMovementInputSystem>();
+            PlayerMovementInputSystem player = collision.GetComponentInParent<PlayerMovementInputSystem>();
             if (player != null)
             {
                 player.Die();
@@ -26,7 +26,7 @@ public class DeadlyObstacle : MonoBehaviour
         else if (!useTag)
         {
             // Alternative: Ohne Tag-Check
-            PlayerMovementInputSystem player = collision.GetComponent<PlayerMovementInputSystem>();
+            PlayerMovementInputSystem player = collision.GetComponentInParent<PlayerMovementInputSystem>();
             if (player != null)
             {
                 player.Die();
@@ -41,7 +41,7 @@ public class DeadlyObstacle : MonoBehaviour
         
         if (useTag && collision.gameObject.CompareTag(playerTag))
         {
-            PlayerMovementInputSystem player = collision.gameObject.GetComponent<PlayerMovementInputSystem>();
+            PlayerMovementInputSystem player = collision.gameObject.GetComponentInParent<PlayerMovementInputSystem>();
             if (player != null)
             {
                 player.Die();
@@ -49,7 +49,7 @@ public class DeadlyObstacle : MonoBehaviour
         }
         else if (!useTag)
         {
-            PlayerMovementInputSystem player = collision.gameObject.GetComponent<PlayerMovementInputSystem>();
+            PlayerMovementInputSystem player = collision.gameObject.GetComponentInParent<PlayerMovementInputSystem>();
             if (player != null)
             {
                 player.Die();

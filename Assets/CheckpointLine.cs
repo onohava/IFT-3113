@@ -50,7 +50,7 @@ public class CheckpointLine : MonoBehaviour
     private void OnTriggerEnter2D(Collider2D collision)
     {
         // Nur beim ersten Mal aktivieren
-        if (isActivated) return;
+        //if (isActivated) return;
         
         // Prüfe ob es der Player ist
         bool isPlayer = false;
@@ -80,10 +80,10 @@ public class CheckpointLine : MonoBehaviour
         fadeProgress = 0f;
         
         // Informiere den Player über den neuen Checkpoint
-        PlayerMovementInputSystem playerMovement = player.GetComponent<PlayerMovementInputSystem>();
+        PlayerMovementInputSystem playerMovement = player.GetComponentInParent<PlayerMovementInputSystem>();
         if (playerMovement != null)
         {
-            playerMovement.SetCheckpoint(transform.position);
+            playerMovement.SetCheckpoint(transform.position, player);
             Debug.Log($"Checkpoint '{gameObject.name}' aktiviert an Position: {transform.position}");
         }
         else
