@@ -339,10 +339,10 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 685102157}
-        m_TargetAssemblyTypeName: LevelSelection, Assembly-CSharp
-        m_MethodName: 
-        m_Mode: 5
+      - m_Target: {fileID: 1134048594348629372, guid: bdbd949c1e272f541a38ef22a30b365b, type: 3}
+        m_TargetAssemblyTypeName: BackToMainMenu, Assembly-CSharp
+        m_MethodName: Go
+        m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
@@ -350,7 +350,7 @@ MonoBehaviour:
           m_FloatArgument: 0
           m_StringArgument: Level1
           m_BoolArgument: 0
-        m_CallState: 1
+        m_CallState: 2
 --- !u!114 &174673348
 MonoBehaviour:
   m_ObjectHideFlags: 0
