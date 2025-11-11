@@ -36,6 +36,10 @@ public class PlayerMovementInputSystem : MonoBehaviour
     private bool isGrounded2;
     private bool isDead1 = false;
     private bool isDead2 = false;
+    private bool isOnRope1 = false;
+    private bool isOnRope2 = false;
+    private GameObject grabbedRope1;
+    private GameObject grabbedRope2;
 
     private InputAction moveAction;
     private InputAction jumpAction;
@@ -66,13 +70,23 @@ public class PlayerMovementInputSystem : MonoBehaviour
             (Keyboard.current.rightArrowKey.isPressed ? 1 : 0) - (Keyboard.current.leftArrowKey.isPressed ? 1 : 0),0);
 
         // Only jump if on the ground and button is pressed
-        if (isGrounded1 && Keyboard.current.wKey.wasPressedThisFrame)
+        if (isGrounded1 && !isOnRope1 && Keyboard.current.wKey.wasPressedThisFrame)
         {
             rb1.linearVelocity = new Vector2(rb1.linearVelocity.x, jumpForce);
         }
-
-        if (isGrounded2 && Keyboard.current.upArrowKey.wasPressedThisFrame)
+        else if(isOnRope1 && Keyboard.current.wKey.wasPressedThisFrame)
         {
+            LetGoRope(player1,grabbedRope1);
+            rb1.linearVelocity = new Vector2(rb1.linearVelocity.x, jumpForce);
+        }
+
+        if (isGrounded2 && !isOnRope2 && Keyboard.current.upArrowKey.wasPressedThisFrame)
+        {
+            rb2.linearVelocity = new Vector2(rb2.linearVelocity.x, jumpForce);
+        }
+        else if (isOnRope2 && Keyboard.current.upArrowKey.wasPressedThisFrame)
+        {
+            LetGoRope(player2, grabbedRope2);
             rb2.linearVelocity = new Vector2(rb2.linearVelocity.x, jumpForce);
         }
     }
@@ -83,8 +97,16 @@ public class PlayerMovementInputSystem : MonoBehaviour
         if (isDead1 || isDead2) return;
         
         // Apply horizontal movement (A = links, D = rechts)
-        rb1.linearVelocity = new Vector2(moveInput1.x * moveSpeed, rb1.linearVelocity.y);
-        rb2.linearVelocity = new Vector2(moveInput2.x * moveSpeed, rb2.linearVelocity.y);
+        if(!isOnRope1)
+            rb1.linearVelocity = new Vector2(moveInput1.x * moveSpeed, rb1.linearVelocity.y);
+        else
+        {
+            grabbedRope1.GetComponent<Rope>().ControlRope(moveInput1.x);
+        }
+        if(!isOnRope2)
+            rb2.linearVelocity = new Vector2(moveInput2.x * moveSpeed, rb2.linearVelocity.y);
+        else
+            grabbedRope2.GetComponent<Rope>().ControlRope(moveInput2.x);
 
 
         // Verhindere Bewegung nach links über den letzten Checkpoint hinaus
@@ -123,6 +145,42 @@ public class PlayerMovementInputSystem : MonoBehaviour
                 isGrounded2 = Physics2D.Raycast(player2.transform.position, Vector2.down, 0.6f, groundLayer);
             }
         }
+
+
+    }
+
+    public void GrabRope(GameObject Player, GameObject rope)
+    {
+        if (Player == player1)
+        {
+            isOnRope1 = true;
+            grabbedRope1 = rope;
+        }
+
+        if(Player == player2)
+        {
+            isOnRope2 = true;
+            grabbedRope2 = rope;
+        }
+
+    }
+
+    public void LetGoRope(GameObject Player, GameObject rope)
+    {
+        rope.GetComponent<Rope>().LetGoRope();
+
+        if (Player == player1)
+        {
+            isOnRope1 = false;
+            grabbedRope1 = null;
+        }
+
+        if(Player == player2)
+        {
+            isOnRope2 = false;
+            grabbedRope2 = null;
+        }
+
 
 
     }
