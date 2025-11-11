@@ -31,7 +31,6 @@ public class LightPlatform : MonoBehaviour
             // 2. Turn on the light
             if (lightToTurnOn != null)
             {
-                print("Well this is weird");
                 lightToTurnOn.SetActive(true);
             }
         }
