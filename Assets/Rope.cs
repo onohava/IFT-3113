@@ -60,7 +60,7 @@ public class Rope : MonoBehaviour
             rope.hinge.useMotor = true;
             JointMotor2D motor = rope.hinge.motor;
             motor.motorSpeed = -input * rope.speed;
-            motor.maxMotorTorque = rope.torque;
+            motor.maxMotorTorque = rope.torque * inputForce;
             rope.hinge.motor = motor;
         }
     }
