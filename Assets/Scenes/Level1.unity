@@ -1432,7 +1432,7 @@ MonoBehaviour:
   climbSpeed: 5
   climableLayer:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 8
   climbCheckRadius: 0.4
 --- !u!50 &899770821
 Rigidbody2D:
