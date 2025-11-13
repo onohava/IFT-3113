@@ -31,7 +31,6 @@ public class PlayerMovementInputSystem : MonoBehaviour
     private Vector3 startPosition2;
     private Vector3 currentRespawnPosition1;
     private Vector3 currentRespawnPosition2;
-    //private float minXPosition; // Minimale X-Position (linke Grenze)
 
     // Input Values
     private Vector2 moveInput1;
@@ -39,8 +38,6 @@ public class PlayerMovementInputSystem : MonoBehaviour
     private float verticalInput1;
     private float verticalInput2;
     private PlayerInput playerInput;
-    // public bool jumpPressed1; // REMOVED
-    // public bool jumpPressed2; // REMOVED
     private bool isGrounded1;
     private bool isGrounded2;
     private bool isDead1 = false;
@@ -77,11 +74,9 @@ public class PlayerMovementInputSystem : MonoBehaviour
 
     private void Update()
     {
-        // Check if player is on the ground
         CheckGround(player1);
         CheckGround(player2);
 
-        // CHANGED
         isTouchingClimable1 = Physics2D.OverlapCircle(player1.transform.position, climbCheckRadius, climableLayer);
         isTouchingClimable2 = Physics2D.OverlapCircle(player2.transform.position, climbCheckRadius, climableLayer);
 
@@ -104,40 +99,48 @@ public class PlayerMovementInputSystem : MonoBehaviour
         { isClimbing2 = false; }
 
 
-        // Only jump if on the ground and button is pressed
-        if (isGrounded1 && Keyboard.current.wKey.wasPressedThisFrame && !isClimbing1)
-        if (isGrounded1 && !isOnRope1 && Keyboard.current.wKey.wasPressedThisFrame)
+        // --- Player 1 Jump Logic ---
+        if (Keyboard.current.wKey.wasPressedThisFrame)
         {
-            rb1.linearVelocity = new Vector2(rb1.linearVelocity.x, jumpForce);
-        }
-        else if(isOnRope1 && Keyboard.current.wKey.wasPressedThisFrame)
-        {
-            LetGoRope(player1,grabbedRope1);
-            rb1.linearVelocity = new Vector2(rb1.linearVelocity.x, jumpForce);
+            if (isGrounded1 && !isClimbing1 && !isOnRope1)
+            {
+                rb1.linearVelocity = new Vector2(rb1.linearVelocity.x, jumpForce);
+            }
+            else if (isOnRope1)
+            {
+                LetGoRope(player1, grabbedRope1);
+                rb1.linearVelocity = new Vector2(rb1.linearVelocity.x, jumpForce);
+            }
         }
 
-        if (isGrounded2 && Keyboard.current.upArrowKey.wasPressedThisFrame && !isClimbing2)
-        if (isGrounded2 && !isOnRope2 && Keyboard.current.upArrowKey.wasPressedThisFrame)
+        // --- Player 2 Jump Logic ---
+        if (Keyboard.current.upArrowKey.wasPressedThisFrame)
         {
-            rb2.linearVelocity = new Vector2(rb2.linearVelocity.x, jumpForce);
-        }
-        else if (isOnRope2 && Keyboard.current.upArrowKey.wasPressedThisFrame)
-        {
-            LetGoRope(player2, grabbedRope2);
-            rb2.linearVelocity = new Vector2(rb2.linearVelocity.x, jumpForce);
+            if (isGrounded2 && !isClimbing2 && !isOnRope2)
+            {
+                rb2.linearVelocity = new Vector2(rb2.linearVelocity.x, jumpForce);
+            }
+            else if (isOnRope2)
+            {
+                LetGoRope(player2, grabbedRope2);
+                rb2.linearVelocity = new Vector2(rb2.linearVelocity.x, jumpForce);
+            }
         }
     }
 
     private void FixedUpdate()
     {
-        // Keine Bewegung wenn der Player tot ist
         if (isDead1 || isDead2) return;
 
-        // Player 1 Movement
+        // --- Player 1 Movement Logic ---
         if (isClimbing1)
         {
             rb1.gravityScale = 0f;
             rb1.linearVelocity = new Vector2(moveInput1.x * moveSpeed, verticalInput1 * climbSpeed);
+        }
+        else if (isOnRope1)
+        {
+            grabbedRope1.GetComponent<Rope>().ControlRope(moveInput1.x);
         }
         else
         {
@@ -145,69 +148,47 @@ public class PlayerMovementInputSystem : MonoBehaviour
             rb1.linearVelocity = new Vector2(moveInput1.x * moveSpeed, rb1.linearVelocity.y);
         }
 
-        // Player 2 Movement
+        // --- Player 2 Movement Logic ---
         if (isClimbing2)
         {
             rb2.gravityScale = 0f;
             rb2.linearVelocity = new Vector2(moveInput2.x * moveSpeed, verticalInput2 * climbSpeed);
+        }
+        else if (isOnRope2)
+        {
+            grabbedRope2.GetComponent<Rope>().ControlRope(moveInput2.x);
         }
         else
         {
             rb2.gravityScale = originalGravity2;
             rb2.linearVelocity = new Vector2(moveInput2.x * moveSpeed, rb2.linearVelocity.y);
         }
-        
-        // Apply horizontal movement (A = links, D = rechts)
-        if(!isOnRope1)
-            rb1.linearVelocity = new Vector2(moveInput1.x * moveSpeed, rb1.linearVelocity.y);
-        else
-        {
-            grabbedRope1.GetComponent<Rope>().ControlRope(moveInput1.x);
-        }
-        if(!isOnRope2)
-            rb2.linearVelocity = new Vector2(moveInput2.x * moveSpeed, rb2.linearVelocity.y);
-        else
-            grabbedRope2.GetComponent<Rope>().ControlRope(moveInput2.x);
-
-
-        // Verhindere Bewegung nach links über den letzten Checkpoint hinaus
-        /*if (transform.position.x < minXPosition)
-V {
-V V transform.position = new Vector3(minXPosition, transform.position.y, transform.position.z);
-V V rb.linearVelocity = new Vector2(Mathf.Max(0, rb.linearVelocity.x), rb.linearVelocity.y); // Stoppe linksseitige Geschwindigkeit
-V }*/
     }
 
     private void CheckGround(GameObject player)
     {
         if (player == player1)
         {
-            // Check if there's ground below the player
             if (groundCheck1 != null)
             {
                 isGrounded1 = Physics2D.OverlapCircle(groundCheck1.position, groundCheckRadius, groundLayer);
             }
             else
             {
-                // Fallback: simple raycast downward from player position
                 isGrounded1 = Physics2D.Raycast(player1.transform.position, Vector2.down, 0.6f, groundLayer);
             }
         }
         else if (player == player2)
         {
-            // Check if there's ground below the player
             if (groundCheck2 != null)
             {
                 isGrounded2 = Physics2D.OverlapCircle(groundCheck2.position, groundCheckRadius, groundLayer);
             }
             else
             {
-                // Fallback: simple raycast downward from player position
                 isGrounded2 = Physics2D.Raycast(player2.transform.position, Vector2.down, 0.6f, groundLayer);
             }
         }
-
-
     }
 
     public void GrabRope(GameObject Player, GameObject rope)
@@ -223,7 +204,6 @@ V }*/
             isOnRope2 = true;
             grabbedRope2 = rope;
         }
-
     }
 
     public void LetGoRope(GameObject Player, GameObject rope)
@@ -241,51 +221,39 @@ V }*/
             isOnRope2 = false;
             grabbedRope2 = null;
         }
-
-
-
     }
     
-    // Optional: Visualize ground check in editor
     private void OnDrawGizmosSelected()
     {
-        // Zeige die linke Grenze (Checkpoint-Barriere) im Editor
         if (Application.isPlaying)
         {
             Gizmos.color = Color.red;
         }
     }
 
-    // Wird von DeadlyObstacle aufgerufen wenn der Player stirbt
     public void Die()
     {
-        // Verhindere mehrfaches Sterben
         if (isDead1 || isDead2) return;
 
-        // Player als tot markieren
         isDead1 = true;
         isDead2 = true;
 
-        // Input komplett deaktivieren
         moveInput1 = Vector2.zero;
         moveInput2 = Vector2.zero;
         verticalInput1 = 0f;
         verticalInput2 = 0f;
 
-        // Alle Bewegung stoppen
         rb1.linearVelocity = Vector2.zero;
         rb1.angularVelocity = 0f;
 
         rb2.linearVelocity = Vector2.zero;
         rb2.angularVelocity = 0f;
 
-        // Verzögerter Respawn
         StartCoroutine(RespawnAfterDelay(0.5f));
 
         Debug.Log("Player ist gestorben!");
     }
 
-    // Wird von CheckpointLine aufgerufen um einen neuen Checkpoint zu setzen
     public void SetCheckpoint(Vector3 checkpointPosition, GameObject player)
     {
         if (player == player1)
@@ -296,18 +264,12 @@ V }*/
         {
             currentRespawnPosition2 = new Vector3(checkpointPosition.x, startPosition2.y, startPosition2.z);
         }
-        //minXPosition = checkpointPosition.x;
-
-        //Debug.Log($"Neuer Checkpoint gesetzt bei X: {checkpointPosition.x}, Y: {startPosition.y} (Linke Grenze: {minXPosition})");
     }
 
     private System.Collections.IEnumerator RespawnAfterDelay(float delay)
     {
-        // Player unsichtbar/transparent machen
-        // Warten vor dem Respawn
         yield return new WaitForSeconds(delay);
 
-        // Zurücksetzen zur aktuellen Respawn-Position (Checkpoint oder Start)
         player1.transform.position = currentRespawnPosition1;
         player2.transform.position = currentRespawnPosition2;
         rb1.linearVelocity = Vector2.zero;
@@ -315,7 +277,6 @@ V }*/
         rb2.linearVelocity = Vector2.zero;
         rb2.angularVelocity = 0f;
 
-        // Player ist wieder lebendig und steuerbar
         isDead1 = false;
         isDead2 = false;
 
