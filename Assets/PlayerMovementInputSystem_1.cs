@@ -49,6 +49,10 @@ public class PlayerMovementInputSystem : MonoBehaviour
     private bool isTouchingClimable2;
     private bool isClimbing1;
     private bool isClimbing2;
+    private bool isOnRope1 = false;
+    private bool isOnRope2 = false;
+    private GameObject grabbedRope1;
+    private GameObject grabbedRope2;
 
     private InputAction moveAction;
     private InputAction jumpAction;
@@ -102,12 +106,24 @@ public class PlayerMovementInputSystem : MonoBehaviour
 
         // Only jump if on the ground and button is pressed
         if (isGrounded1 && Keyboard.current.wKey.wasPressedThisFrame && !isClimbing1)
+        if (isGrounded1 && !isOnRope1 && Keyboard.current.wKey.wasPressedThisFrame)
         {
+            rb1.linearVelocity = new Vector2(rb1.linearVelocity.x, jumpForce);
+        }
+        else if(isOnRope1 && Keyboard.current.wKey.wasPressedThisFrame)
+        {
+            LetGoRope(player1,grabbedRope1);
             rb1.linearVelocity = new Vector2(rb1.linearVelocity.x, jumpForce);
         }
 
         if (isGrounded2 && Keyboard.current.upArrowKey.wasPressedThisFrame && !isClimbing2)
+        if (isGrounded2 && !isOnRope2 && Keyboard.current.upArrowKey.wasPressedThisFrame)
         {
+            rb2.linearVelocity = new Vector2(rb2.linearVelocity.x, jumpForce);
+        }
+        else if (isOnRope2 && Keyboard.current.upArrowKey.wasPressedThisFrame)
+        {
+            LetGoRope(player2, grabbedRope2);
             rb2.linearVelocity = new Vector2(rb2.linearVelocity.x, jumpForce);
         }
     }
@@ -140,6 +156,18 @@ public class PlayerMovementInputSystem : MonoBehaviour
             rb2.gravityScale = originalGravity2;
             rb2.linearVelocity = new Vector2(moveInput2.x * moveSpeed, rb2.linearVelocity.y);
         }
+        
+        // Apply horizontal movement (A = links, D = rechts)
+        if(!isOnRope1)
+            rb1.linearVelocity = new Vector2(moveInput1.x * moveSpeed, rb1.linearVelocity.y);
+        else
+        {
+            grabbedRope1.GetComponent<Rope>().ControlRope(moveInput1.x);
+        }
+        if(!isOnRope2)
+            rb2.linearVelocity = new Vector2(moveInput2.x * moveSpeed, rb2.linearVelocity.y);
+        else
+            grabbedRope2.GetComponent<Rope>().ControlRope(moveInput2.x);
 
 
         // Verhindere Bewegung nach links über den letzten Checkpoint hinaus
@@ -182,6 +210,42 @@ V }*/
 
     }
 
+    public void GrabRope(GameObject Player, GameObject rope)
+    {
+        if (Player == player1)
+        {
+            isOnRope1 = true;
+            grabbedRope1 = rope;
+        }
+
+        if(Player == player2)
+        {
+            isOnRope2 = true;
+            grabbedRope2 = rope;
+        }
+
+    }
+
+    public void LetGoRope(GameObject Player, GameObject rope)
+    {
+        rope.GetComponent<Rope>().LetGoRope();
+
+        if (Player == player1)
+        {
+            isOnRope1 = false;
+            grabbedRope1 = null;
+        }
+
+        if(Player == player2)
+        {
+            isOnRope2 = false;
+            grabbedRope2 = null;
+        }
+
+
+
+    }
+    
     // Optional: Visualize ground check in editor
     private void OnDrawGizmosSelected()
     {
