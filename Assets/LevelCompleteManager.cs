@@ -17,158 +17,138 @@ public class LevelCompleteManager : MonoBehaviour
     
     private void Start()
     {
-        // Falls kein Canvas zugewiesen wurde, nehme das GameObject auf dem dieses Skript ist
         if (levelCompleteCanvas == null)
         {
             levelCompleteCanvas = gameObject;
-            Debug.Log("LevelCompleteManager: Canvas wurde automatisch auf dieses GameObject gesetzt.");
+            Debug.Log("LevelCompleteManager: Canvas automatically set to this GameObject.");
         }
         
-        // Stelle sicher, dass das Canvas initial versteckt ist
         if (levelCompleteCanvas != null)
         {
             levelCompleteCanvas.SetActive(false);
-            Debug.Log($"LevelCompleteManager: Canvas '{levelCompleteCanvas.name}' initial deaktiviert.");
+            Debug.Log($"LevelCompleteManager: Canvas '{levelCompleteCanvas.name}' initially deactivated.");
         }
         
-        // Verbinde Button-Events
         if (retryButton != null)
         {
             retryButton.onClick.AddListener(RetryLevel);
-            Debug.Log("LevelCompleteManager: Retry Button verbunden.");
+            Debug.Log("LevelCompleteManager: Retry Button connected.");
         }
         else
         {
-            Debug.LogWarning("LevelCompleteManager: Retry Button fehlt!");
+            Debug.LogWarning("LevelCompleteManager: Retry Button missing!");
         }
         
         if (nextLevelButton != null)
         {
             nextLevelButton.onClick.AddListener(LoadNextLevel);
-            Debug.Log("LevelCompleteManager: Next Level Button verbunden.");
+            Debug.Log("LevelCompleteManager: Next Level Button connected.");
         }
         else
         {
-            Debug.LogWarning("LevelCompleteManager: Next Level Button fehlt!");
+            Debug.LogWarning("LevelCompleteManager: Next Level Button missing!");
         }
         
-        // Prüfe ob es ein nächstes Level gibt
         CheckIfLastLevel();
     }
     
     public void ShowLevelComplete()
     {
-        Debug.Log("ShowLevelComplete() aufgerufen!");
+        Debug.Log("ShowLevelComplete() called!");
         
         if (isLevelComplete)
         {
-            Debug.LogWarning("Level ist bereits komplett!");
+            Debug.LogWarning("Level is already complete!");
             return;
         }
         
         isLevelComplete = true;
         
-        // Speichere dass dieses Level abgeschlossen wurde
         int currentSceneIndex = SceneManager.GetActiveScene().buildIndex;
         string currentSceneName = SceneManager.GetActiveScene().name;
         LevelProgressManager.SetLevelCompleted(currentSceneName);
-        Debug.Log($"Level '{currentSceneName}' (Index: {currentSceneIndex}) wurde als abgeschlossen gespeichert!");
+        Debug.Log($"Level '{currentSceneName}' (Index: {currentSceneIndex}) has been saved as completed!");
         
-        Debug.Log($"Zeige UI in {delayBeforeShow} Sekunden...");
+        Debug.Log($"Showing UI in {delayBeforeShow} seconds...");
         
-        // Zeige UI mit kleiner Verzögerung
         Invoke(nameof(DisplayUI), delayBeforeShow);
     }
     
     private void DisplayUI()
     {
-        Debug.Log("DisplayUI() aufgerufen!");
+        Debug.Log("DisplayUI() called!");
         
         if (levelCompleteCanvas != null)
         {
-            Debug.Log($"Aktiviere Canvas: {levelCompleteCanvas.name}");
+            Debug.Log($"Activating Canvas: {levelCompleteCanvas.name}");
             levelCompleteCanvas.SetActive(true);
-            Debug.Log($"Canvas ist jetzt aktiv: {levelCompleteCanvas.activeSelf}");
+            Debug.Log($"Canvas is now active: {levelCompleteCanvas.activeSelf}");
         }
         else
         {
-            Debug.LogError("LevelCompleteManager: levelCompleteCanvas ist NULL!");
+            Debug.LogError("LevelCompleteManager: levelCompleteCanvas is NULL!");
         }
         
-        // Pausiere das Spiel (optional)
         if (pauseGameOnComplete)
         {
             Time.timeScale = 0f;
-            Debug.Log("Spiel pausiert (Time.timeScale = 0)");
+            Debug.Log("Game paused (Time.timeScale = 0)");
         }
         
-        Debug.Log("Level Complete UI angezeigt");
+        Debug.Log("Level Complete UI displayed");
     }
     
     public void RetryLevel()
     {
         Debug.Log("Retry Level...");
         
-        // Setze Time Scale zurück
         Time.timeScale = 1f;
         
-        // Lade die aktuelle Szene neu
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
     
     public void LoadNextLevel()
     {
-        Debug.Log("Lade nächstes Level...");
+        Debug.Log("Loading next level...");
         
-        // Setze Time Scale zurück
         Time.timeScale = 1f;
         
-        // Hole den Index der nächsten Szene
         int currentSceneIndex = SceneManager.GetActiveScene().buildIndex;
         int nextSceneIndex = currentSceneIndex + 1;
         
-        // Prüfe ob es noch eine weitere Szene gibt
         if (nextSceneIndex < SceneManager.sceneCountInBuildSettings)
         {
             SceneManager.LoadScene(nextSceneIndex);
         }
         else
         {
-            Debug.LogWarning("Kein weiteres Level vorhanden! Dies war das letzte Level.");
-            // Optional: Zurück zum Hauptmenü oder Level Selection
-            // SceneManager.LoadScene("MainMenu");
+            Debug.LogWarning("No further level available! This was the last level.");
         }
     }
     
     private void CheckIfLastLevel()
     {
-        // Prüfe ob dies das letzte Level ist
         int currentSceneIndex = SceneManager.GetActiveScene().buildIndex;
         int nextSceneIndex = currentSceneIndex + 1;
         
         if (nextSceneIndex >= SceneManager.sceneCountInBuildSettings)
         {
-            // Dies ist das letzte Level - deaktiviere Next Level Button
             if (nextLevelButton != null)
             {
                 nextLevelButton.interactable = false;
-                // Optional: Ändere den Text zu "Letztes Level!"
                 var buttonText = nextLevelButton.GetComponentInChildren<TMPro.TextMeshProUGUI>();
                 if (buttonText != null)
                 {
-                    buttonText.text = "Letztes Level!";
+                    buttonText.text = "Last Level!";
                 }
             }
         }
     }
     
-    // Cleanup wenn das Skript zerstört wird
     private void OnDestroy()
     {
-        // Stelle sicher, dass Time Scale zurückgesetzt wird
         Time.timeScale = 1f;
         
-        // Entferne Button-Listener
         if (retryButton != null)
         {
             retryButton.onClick.RemoveListener(RetryLevel);
@@ -180,4 +160,3 @@ public class LevelCompleteManager : MonoBehaviour
         }
     }
 }
-

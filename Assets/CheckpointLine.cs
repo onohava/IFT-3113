@@ -26,14 +26,12 @@ public class CheckpointLine : MonoBehaviour
         }
         else
         {
-            // Setze initiale Farbe
             spriteRenderer.color = inactiveColor;
         }
     }
     
     private void Update()
     {
-        // Smooth Fade-Effekt beim Aktivieren
         if (isFading && spriteRenderer != null)
         {
             fadeProgress += Time.deltaTime * fadeSpeed;
@@ -49,10 +47,6 @@ public class CheckpointLine : MonoBehaviour
     
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        // Nur beim ersten Mal aktivieren
-        //if (isActivated) return;
-        
-        // Prüfe ob es der Player ist
         bool isPlayer = false;
         
         if (useTag)
@@ -72,30 +66,20 @@ public class CheckpointLine : MonoBehaviour
     
     private void ActivateCheckpoint(GameObject player)
     {
-        // Markiere als aktiviert
         isActivated = true;
         
-        // Starte Farbwechsel
         isFading = true;
         fadeProgress = 0f;
         
-        // Informiere den Player über den neuen Checkpoint
         PlayerMovementInputSystem playerMovement = player.GetComponentInParent<PlayerMovementInputSystem>();
         if (playerMovement != null)
         {
             playerMovement.SetCheckpoint(transform.position, player);
-            Debug.Log($"Checkpoint '{gameObject.name}' aktiviert an Position: {transform.position}");
+            Debug.Log($"Checkpoint '{gameObject.name}' activated at position: {transform.position}");
         }
         else
         {
-            Debug.LogWarning($"CheckpointLine '{gameObject.name}': PlayerMovementInputSystem nicht gefunden!");
+            Debug.LogWarning($"CheckpointLine '{gameObject.name}': PlayerMovementInputSystem not found");
         }
-    }
-    
-    // Optional: Zum Debugging - zeigt den Status in der Scene View
-    private void OnDrawGizmos()
-    {
-        Gizmos.color = isActivated ? Color.green : Color.white;
-        Gizmos.DrawWireCube(transform.position, new Vector3(0.2f, 1f, 0f));
     }
 }

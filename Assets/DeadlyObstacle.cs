@@ -13,10 +13,8 @@ public class DeadlyObstacle : MonoBehaviour
     {
         if (!useTrigger) return;
         
-        // Prüfe ob es der Player ist
         if (useTag && collision.CompareTag(playerTag))
         {
-            // Hole das PlayerMovementInputSystem und rufe Die() auf
             PlayerMovementInputSystem player = collision.GetComponentInParent<PlayerMovementInputSystem>();
             if (player != null)
             {
@@ -25,7 +23,6 @@ public class DeadlyObstacle : MonoBehaviour
         }
         else if (!useTag)
         {
-            // Alternative: Ohne Tag-Check
             PlayerMovementInputSystem player = collision.GetComponentInParent<PlayerMovementInputSystem>();
             if (player != null)
             {
@@ -34,7 +31,6 @@ public class DeadlyObstacle : MonoBehaviour
         }
     }
     
-    // Alternative: Für Collider statt Trigger
     private void OnCollisionEnter2D(Collision2D collision)
     {
         if (useTrigger) return;
