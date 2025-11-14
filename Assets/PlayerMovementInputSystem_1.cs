@@ -2,7 +2,6 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using static UnityEngine.Rendering.DebugUI;
 
-[RequireComponent(typeof(Rigidbody2D))]
 public class PlayerMovementInputSystem : MonoBehaviour
 {
     [Header("Movement Settings")]
