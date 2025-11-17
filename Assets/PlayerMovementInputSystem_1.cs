@@ -5,13 +5,13 @@ using static UnityEngine.Rendering.DebugUI;
 public class PlayerMovementInputSystem : MonoBehaviour
 {
     [Header("Movement Settings")]
-    [SerializeField] private float moveSpeed = 5f;
-    [SerializeField] private float jumpForce = 10f;
+    [SerializeField] private float moveSpeed;
+    [SerializeField] private float jumpForce;
 
     [Header("Ground Check")]
     [SerializeField] private Transform groundCheck1;
     [SerializeField] private Transform groundCheck2;
-    [SerializeField] private float groundCheckRadius = 0.2f;
+                     private float groundCheckRadius = 0.04f;
     [SerializeField] private LayerMask groundLayer;
     public GameObject player1;
     public GameObject player2;
@@ -30,13 +30,13 @@ public class PlayerMovementInputSystem : MonoBehaviour
     private Vector3 startPosition2;
     private Vector3 currentRespawnPosition1;
     private Vector3 currentRespawnPosition2;
+    private float originalDamping;
 
     // Input Values
     private Vector2 moveInput1;
     private Vector2 moveInput2;
     private float verticalInput1;
     private float verticalInput2;
-    private PlayerInput playerInput;
     private bool isGrounded1;
     private bool isGrounded2;
     private bool isDead1 = false;
@@ -49,14 +49,18 @@ public class PlayerMovementInputSystem : MonoBehaviour
     private bool isOnRope2 = false;
     private GameObject grabbedRope1;
     private GameObject grabbedRope2;
+    private bool isJumpWindowActive1 = false;
+    private bool isJumpWindowActive2 = false;
 
-    private InputAction moveAction;
-    private InputAction jumpAction;
+    private bool movePressed1;
+    private bool jumpPressed1;
+    private bool jumpHold1;
+    private bool movePressed2;
+    private bool jumpPressed2;
+    private bool jumpHold2;
 
     private void Awake()
-    {
-        playerInput = GetComponent<PlayerInput>();
-        
+    {      
         rb1 = player1.GetComponent<Rigidbody2D>();
         originalGravity1 = rb1.gravityScale;
         startPosition1 = player1.transform.position;
@@ -67,15 +71,11 @@ public class PlayerMovementInputSystem : MonoBehaviour
         startPosition2 = player2.transform.position;
         currentRespawnPosition2 = startPosition2;
 
-        moveAction = playerInput.actions["Move"];
-        jumpAction = playerInput.actions["Jump"];
+        originalDamping = rb1.linearDamping;
     }
 
     private void Update()
     {
-        CheckGround(player1);
-        CheckGround(player2);
-
         isTouchingClimable1 = Physics2D.OverlapCircle(player1.transform.position, climbCheckRadius, climableLayer);
         isTouchingClimable2 = Physics2D.OverlapCircle(player2.transform.position, climbCheckRadius, climableLayer);
 
@@ -97,45 +97,66 @@ public class PlayerMovementInputSystem : MonoBehaviour
         else if (!isTouchingClimable2)
         { isClimbing2 = false; }
 
+        if(Keyboard.current.wKey.wasPressedThisFrame)
+            jumpPressed1 = true;
+        if(Keyboard.current.aKey.wasPressedThisFrame || Keyboard.current.dKey.wasPressedThisFrame)
+            movePressed1 = true;
+        jumpHold1 = Keyboard.current.wKey.isPressed;
 
-        // --- Player 1 Jump Logic ---
-        if (Keyboard.current.wKey.wasPressedThisFrame)
-        {
-            if (isGrounded1 && !isClimbing1 && !isOnRope1)
-            {
-                rb1.linearVelocity = new Vector2(rb1.linearVelocity.x, jumpForce);
-            }
-            else if (isOnRope1)
-            {
-                LetGoRope(player1, grabbedRope1);
-                rb1.linearVelocity = new Vector2(rb1.linearVelocity.x, jumpForce);
-            }
-        }
-
-        // --- Player 2 Jump Logic ---
         if (Keyboard.current.upArrowKey.wasPressedThisFrame)
-        {
-            if (isGrounded2 && !isClimbing2 && !isOnRope2)
-            {
-                rb2.linearVelocity = new Vector2(rb2.linearVelocity.x, jumpForce);
-            }
-            else if (isOnRope2)
-            {
-                LetGoRope(player2, grabbedRope2);
-                rb2.linearVelocity = new Vector2(rb2.linearVelocity.x, jumpForce);
-            }
-        }
+            jumpPressed2 = true;
+        if (Keyboard.current.leftArrowKey.wasPressedThisFrame || Keyboard.current.rightArrowKey.wasPressedThisFrame)
+            movePressed2 = true;
+        jumpHold2 = Keyboard.current.upArrowKey.isPressed;
     }
 
     private void FixedUpdate()
     {
+        CheckGround(player1);
+        CheckGround(player2);
         if (isDead1 || isDead2) return;
 
+        // --- Player 1 Jump Logic ---
+
+        if (isGrounded1 || isClimbing1 && isJumpWindowActive1)
+        {
+            StopCoroutine(JumpHoldWindow1());
+            isJumpWindowActive1 = false;
+        }
+        if (isJumpWindowActive1 && jumpHold1)
+        {
+            rb1.AddForceY(jumpForce*3.5f, ForceMode2D.Force);
+        }
+
+        if (jumpPressed1)
+        {
+            if (isGrounded1 && !isClimbing1 && !isOnRope1)
+            {
+                rb1.AddForceY(jumpForce / 2, ForceMode2D.Impulse);
+                StartCoroutine(JumpHoldWindow1());
+            }
+            else if (isOnRope1)
+            {
+                LetGoRope(player1, grabbedRope1);
+                rb1.AddForceY(jumpForce / 2, ForceMode2D.Impulse);
+                StartCoroutine(JumpHoldWindow1());
+            }
+            jumpPressed1 = false;
+        }
+
         // --- Player 1 Movement Logic ---
+        // This adds a little impulse at the beginning of movement
+        if (movePressed1)
+        {
+            rb1.linearVelocityX = moveInput1.x;
+            movePressed1 = false;
+        }
+
         if (isClimbing1)
         {
             rb1.gravityScale = 0f;
-            rb1.linearVelocity = new Vector2(moveInput1.x * moveSpeed, verticalInput1 * climbSpeed);
+            rb1.AddForceY(verticalInput1 * jumpForce, ForceMode2D.Force);
+            rb1.AddForceX(moveInput1.x * moveSpeed/10, ForceMode2D.Force);
         }
         else if (isOnRope1)
         {
@@ -144,23 +165,58 @@ public class PlayerMovementInputSystem : MonoBehaviour
         else
         {
             rb1.gravityScale = originalGravity1;
-            rb1.linearVelocity = new Vector2(moveInput1.x * moveSpeed, rb1.linearVelocity.y);
+            rb1.AddForceX(moveInput1.x * moveSpeed, ForceMode2D.Force);
+        }
+
+
+        // --- Player 2 Jump Logic ---
+        if (isGrounded2 && isJumpWindowActive2)
+        {
+            StopCoroutine(JumpHoldWindow2());
+            isJumpWindowActive2 = false;
+        }
+        if (isJumpWindowActive2 && jumpHold2)
+        {
+            rb2.AddForceY(jumpForce, ForceMode2D.Force);
+        }
+
+        if (jumpPressed2)
+        {
+            if (isGrounded2 && !isClimbing2 && !isOnRope2)
+            {
+                rb2.AddForceY(jumpForce / 5, ForceMode2D.Impulse);
+                StartCoroutine(JumpHoldWindow2());
+            }
+            else if (isOnRope2)
+            {
+                LetGoRope(player2, grabbedRope2);
+                rb2.AddForceY(jumpForce / 5, ForceMode2D.Impulse);
+                StartCoroutine(JumpHoldWindow2());
+            }
+            jumpPressed2 = false;
         }
 
         // --- Player 2 Movement Logic ---
+        if (movePressed2)
+        {
+            rb2.linearVelocityX = moveInput2.x;
+            movePressed2 = false;
+        }
+
         if (isClimbing2)
         {
             rb2.gravityScale = 0f;
-            rb2.linearVelocity = new Vector2(moveInput2.x * moveSpeed, verticalInput2 * climbSpeed);
+            rb2.AddForceY(verticalInput2 * jumpForce/2, ForceMode2D.Force);
+            rb2.AddForceX(moveInput2.x * moveSpeed / 10, ForceMode2D.Force);
         }
         else if (isOnRope2)
         {
             grabbedRope2.GetComponent<Rope>().ControlRope(moveInput2.x);
         }
-        else
+        else 
         {
             rb2.gravityScale = originalGravity2;
-            rb2.linearVelocity = new Vector2(moveInput2.x * moveSpeed, rb2.linearVelocity.y);
+            rb2.AddForceX(moveInput2.x * moveSpeed/3, ForceMode2D.Force);
         }
     }
 
@@ -168,24 +224,37 @@ public class PlayerMovementInputSystem : MonoBehaviour
     {
         if (player == player1)
         {
-            if (groundCheck1 != null)
+            Collider2D[] hits = Physics2D.OverlapBoxAll(groundCheck1.position, new Vector2(0.12f, 0.02f), 0, groundLayer);
+
+            if (hits != null)
             {
-                isGrounded1 = Physics2D.OverlapCircle(groundCheck1.position, groundCheckRadius, groundLayer);
-            }
-            else
-            {
-                isGrounded1 = Physics2D.Raycast(player1.transform.position, Vector2.down, 0.6f, groundLayer);
+                bool groundFound = false;
+                foreach (Collider2D col in hits)
+                {
+                    if (col.gameObject != player1)
+                    {
+                        groundFound = true;
+                        break;
+                    }
+                }
+                isGrounded1 = groundFound;
             }
         }
         else if (player == player2)
         {
-            if (groundCheck2 != null)
+            Collider2D[] hits = Physics2D.OverlapBoxAll(groundCheck2.position, new Vector2(0.12f, 0.02f), 0, groundLayer);
+            if (hits != null)
             {
-                isGrounded2 = Physics2D.OverlapCircle(groundCheck2.position, groundCheckRadius, groundLayer);
-            }
-            else
-            {
-                isGrounded2 = Physics2D.Raycast(player2.transform.position, Vector2.down, 0.6f, groundLayer);
+                bool groundFound = false;
+                foreach (Collider2D col in hits)
+                {
+                    if (col.gameObject != player2)
+                    {
+                        groundFound = true;
+                        break;
+                    }
+                }
+                isGrounded2 = groundFound;
             }
         }
     }
@@ -196,12 +265,14 @@ public class PlayerMovementInputSystem : MonoBehaviour
         {
             isOnRope1 = true;
             grabbedRope1 = rope;
+            rb1.linearDamping = 0;
         }
 
         if(Player == player2)
         {
             isOnRope2 = true;
             grabbedRope2 = rope;
+            rb2.linearDamping = 0;
         }
     }
 
@@ -213,12 +284,14 @@ public class PlayerMovementInputSystem : MonoBehaviour
         {
             isOnRope1 = false;
             grabbedRope1 = null;
+            rb1.linearDamping = originalDamping;
         }
 
         if(Player == player2)
         {
             isOnRope2 = false;
             grabbedRope2 = null;
+            rb2.linearDamping = originalDamping;
         }
     }
     
@@ -249,8 +322,6 @@ public class PlayerMovementInputSystem : MonoBehaviour
         rb2.angularVelocity = 0f;
 
         StartCoroutine(RespawnAfterDelay(0.5f));
-
-        Debug.Log("Player ist gestorben!");
     }
 
     public void SetCheckpoint(Vector3 checkpointPosition, GameObject player)
@@ -270,7 +341,7 @@ public class PlayerMovementInputSystem : MonoBehaviour
         yield return new WaitForSeconds(delay);
 
         player1.transform.position = currentRespawnPosition1;
-        player2.transform.position = currentRespawnPosition2;
+        player2.transform.position = new Vector2(currentRespawnPosition2.x, currentRespawnPosition2.y + 0.16f);
         rb1.linearVelocity = Vector2.zero;
         rb1.angularVelocity = 0f;
         rb2.linearVelocity = Vector2.zero;
@@ -278,7 +349,19 @@ public class PlayerMovementInputSystem : MonoBehaviour
 
         isDead1 = false;
         isDead2 = false;
+    }
 
-        Debug.Log("Player ist respawnt und wieder steuerbar!");
+    private System.Collections.IEnumerator JumpHoldWindow1()
+    {
+        isJumpWindowActive1 = true;
+        yield return new WaitForSeconds(0.25f);
+        isJumpWindowActive1 = false;
+    }
+
+    private System.Collections.IEnumerator JumpHoldWindow2()
+    {
+        isJumpWindowActive2 = true;
+        yield return new WaitForSeconds(0.25f);
+        isJumpWindowActive2 = false;
     }
 }
