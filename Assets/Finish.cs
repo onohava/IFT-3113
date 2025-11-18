@@ -1,21 +1,20 @@
 using UnityEngine;
-using System.Collections.Generic; // Added this to use HashSet
+using System.Collections.Generic;
 
 public class Finish : MonoBehaviour
 {
     [Header("Settings")]
     [SerializeField] private bool useTag = true;
     [SerializeField] private string playerTag = "Player";
-    [SerializeField] private int requiredPlayerCount = 2; // <-- New variable!
+    [SerializeField] private int requiredPlayerCount = 2;
     
     [Header("Visual Feedback")]
     [SerializeField] private bool changeColorOnActivation = true;
-    [SerializeField] private Color completedColor = new Color(1f, 0.84f, 0f, 1f); // Gold
+    [SerializeField] private Color completedColor = new Color(1f, 0.84f, 0f, 1f);
     
     private bool levelCompleted = false;
     private SpriteRenderer spriteRenderer;
 
-    // This HashSet will store all the unique players currently in the trigger
     private HashSet<Collider2D> playersInZone = new HashSet<Collider2D>();
     
     private void Awake()
@@ -23,8 +22,6 @@ public class Finish : MonoBehaviour
         spriteRenderer = GetComponent<SpriteRenderer>();
     }
 
-    // A helper function to check if an object is a player
-    // This is just your logic from OnTriggerEnter, moved here
     private bool IsPlayer(Collider2D collision)
     {
         if (useTag)
@@ -33,36 +30,28 @@ public class Finish : MonoBehaviour
         }
         else
         {
-            // Note: This check will be slow. CompareTag is much better!
             return collision.GetComponent<PlayerMovementInputSystem>() != null;
         }
     }
     
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        // Don't do anything if the level is already finished
         if (levelCompleted) return;
         
-        // Check if the object that entered is a player
         if (IsPlayer(collision))
         {
-            // Add the player to our list
             playersInZone.Add(collision);
 
-            // Check if we now have enough players to finish
             CheckForCompletion();
         }
     }
 
     private void OnTriggerExit2D(Collider2D collision)
     {
-        // Don't do anything if the level is already finished
         if (levelCompleted) return;
 
-        // Check if the object that LEFT is a player
         if (IsPlayer(collision))
         {
-            // Remove the player from our list if they are in it
             if (playersInZone.Contains(collision))
             {
                 playersInZone.Remove(collision);
@@ -72,7 +61,6 @@ public class Finish : MonoBehaviour
 
     private void CheckForCompletion()
     {
-        // Do we have the required number of players?
         if (playersInZone.Count == requiredPlayerCount)
         {
             CompleteLevel();
@@ -83,15 +71,11 @@ public class Finish : MonoBehaviour
     {
         levelCompleted = true;
         
-        // Visual Feedback
         if (changeColorOnActivation && spriteRenderer != null)
         {
             spriteRenderer.color = completedColor;
         }
-        
-        Debug.Log("Level Complete! Finish erreicht.");
-        
-        // Notify the LevelCompleteManager
+                
         LevelCompleteManager manager = FindObjectOfType<LevelCompleteManager>(true);
         if (manager != null)
         {
@@ -99,7 +83,7 @@ public class Finish : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("Finish: Kein LevelCompleteManager in der Szene gefunden!");
+            Debug.LogWarning("Finish: No LevelCompleteManager found!");
         }
     }
 }
