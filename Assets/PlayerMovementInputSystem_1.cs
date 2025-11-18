@@ -11,7 +11,6 @@ public class PlayerMovementInputSystem : MonoBehaviour
     [Header("Ground Check")]
     [SerializeField] private Transform groundCheck1;
     [SerializeField] private Transform groundCheck2;
-                     private float groundCheckRadius = 0.04f;
     [SerializeField] private LayerMask groundLayer;
     public GameObject player1;
     public GameObject player2;
@@ -155,7 +154,7 @@ public class PlayerMovementInputSystem : MonoBehaviour
         if (isClimbing1)
         {
             rb1.gravityScale = 0f;
-            rb1.AddForceY(verticalInput1 * jumpForce, ForceMode2D.Force);
+            rb1.AddForceY(verticalInput1 * climbSpeed, ForceMode2D.Force);
             rb1.AddForceX(moveInput1.x * moveSpeed/10, ForceMode2D.Force);
         }
         else if (isOnRope1)
