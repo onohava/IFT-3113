@@ -5787,6 +5787,10 @@ PrefabInstance:
       propertyPath: player2
       value: 
       objectReference: {fileID: 275808320}
+    - target: {fileID: 7053919136488949037, guid: 40490c61b2aad0b4ba2d764f9b0684bc, type: 3}
+      propertyPath: splitDistance
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8306838479642855186, guid: 40490c61b2aad0b4ba2d764f9b0684bc, type: 3}
       propertyPath: m_Name
       value: CameraManager
