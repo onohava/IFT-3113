@@ -20,6 +20,12 @@ public class PlayerMovementInputSystem : MonoBehaviour
     [SerializeField] private LayerMask climableLayer;
     [SerializeField] private float climbCheckRadius = 0.4f;
 
+    [Header("Audio")]
+    [SerializeField] private AudioClip jumpSound;
+    [SerializeField] private AudioClip checkpointSound;
+    [SerializeField] private AudioClip deathSound;
+    private AudioSource audioSource;
+
     // Components
     private Rigidbody2D rb1;
     private Rigidbody2D rb2;
@@ -58,6 +64,9 @@ public class PlayerMovementInputSystem : MonoBehaviour
     private bool jumpPressed2;
     private bool jumpHold2;
 
+    // Checkpoint tracking
+    private System.Collections.Generic.HashSet<float> reachedCheckpoints = new System.Collections.Generic.HashSet<float>();
+
     private void Awake()
     {      
         rb1 = player1.GetComponent<Rigidbody2D>();
@@ -71,6 +80,13 @@ public class PlayerMovementInputSystem : MonoBehaviour
         currentRespawnPosition2 = startPosition2;
 
         originalDamping = rb1.linearDamping;
+
+        // AudioSource initialisieren
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+        {
+            audioSource = gameObject.AddComponent<AudioSource>();
+        }
     }
 
     private void Update()
@@ -133,12 +149,14 @@ public class PlayerMovementInputSystem : MonoBehaviour
             {
                 rb1.AddForceY(jumpForce / 2, ForceMode2D.Impulse);
                 StartCoroutine(JumpHoldWindow1());
+                PlayJumpSound();
             }
             else if (isOnRope1)
             {
                 LetGoRope(player1, grabbedRope1);
                 rb1.AddForceY(jumpForce / 2, ForceMode2D.Impulse);
                 StartCoroutine(JumpHoldWindow1());
+                PlayJumpSound();
             }
             jumpPressed1 = false;
         }
@@ -185,12 +203,14 @@ public class PlayerMovementInputSystem : MonoBehaviour
             {
                 rb2.AddForceY(jumpForce / 5, ForceMode2D.Impulse);
                 StartCoroutine(JumpHoldWindow2());
+                PlayJumpSound();
             }
             else if (isOnRope2)
             {
                 LetGoRope(player2, grabbedRope2);
                 rb2.AddForceY(jumpForce / 5, ForceMode2D.Impulse);
                 StartCoroutine(JumpHoldWindow2());
+                PlayJumpSound();
             }
             jumpPressed2 = false;
         }
@@ -320,11 +340,16 @@ public class PlayerMovementInputSystem : MonoBehaviour
         rb2.linearVelocity = Vector2.zero;
         rb2.angularVelocity = 0f;
 
+        PlayDeathSound();
         StartCoroutine(RespawnAfterDelay(0.5f));
     }
 
     public void SetCheckpoint(Vector3 checkpointPosition, GameObject player)
     {
+        // Verwende die X-Position als eindeutigen Identifier für den Checkpoint
+        float checkpointX = checkpointPosition.x;
+        bool isNewCheckpoint = !reachedCheckpoints.Contains(checkpointX);
+
         if (player == player1)
         {
             currentRespawnPosition1 = new Vector3(checkpointPosition.x, startPosition1.y, startPosition1.z);
@@ -332,6 +357,13 @@ public class PlayerMovementInputSystem : MonoBehaviour
         else if (player == player2)
         {
             currentRespawnPosition2 = new Vector3(checkpointPosition.x, startPosition2.y, startPosition2.z);
+        }
+
+        // Sound nur beim ersten Erreichen abspielen
+        if (isNewCheckpoint)
+        {
+            reachedCheckpoints.Add(checkpointX);
+            PlayCheckpointSound();
         }
     }
 
@@ -362,5 +394,29 @@ public class PlayerMovementInputSystem : MonoBehaviour
         isJumpWindowActive2 = true;
         yield return new WaitForSeconds(0.25f);
         isJumpWindowActive2 = false;
+    }
+
+    private void PlayJumpSound()
+    {
+        if (jumpSound != null && audioSource != null)
+        {
+            audioSource.PlayOneShot(jumpSound);
+        }
+    }
+
+    private void PlayCheckpointSound()
+    {
+        if (checkpointSound != null && audioSource != null)
+        {
+            audioSource.PlayOneShot(checkpointSound);
+        }
+    }
+
+    private void PlayDeathSound()
+    {
+        if (deathSound != null && audioSource != null)
+        {
+            audioSource.PlayOneShot(deathSound);
+        }
     }
 }

@@ -13,6 +13,10 @@ public class LevelCompleteManager : MonoBehaviour
     [SerializeField] private bool pauseGameOnComplete = true;
     [SerializeField] private float delayBeforeShow = 0.5f;
     
+    [Header("Audio")]
+    [SerializeField] private AudioClip levelSuccessSound;
+    private AudioSource audioSource;
+    
     private bool isLevelComplete = false;
     
     private void Start()
@@ -49,6 +53,13 @@ public class LevelCompleteManager : MonoBehaviour
             Debug.LogWarning("LevelCompleteManager: Next Level Button missing!");
         }
         
+        // AudioSource initialisieren
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+        {
+            audioSource = gameObject.AddComponent<AudioSource>();
+        }
+        
         CheckIfLastLevel();
     }
     
@@ -68,6 +79,8 @@ public class LevelCompleteManager : MonoBehaviour
         string currentSceneName = SceneManager.GetActiveScene().name;
         LevelProgressManager.SetLevelCompleted(currentSceneName);
         Debug.Log($"Level '{currentSceneName}' (Index: {currentSceneIndex}) has been saved as completed!");
+        
+        PlayLevelSuccessSound();
         
         Debug.Log($"Showing UI in {delayBeforeShow} seconds...");
         
@@ -142,6 +155,14 @@ public class LevelCompleteManager : MonoBehaviour
                     buttonText.text = "Last Level!";
                 }
             }
+        }
+    }
+    
+    private void PlayLevelSuccessSound()
+    {
+        if (levelSuccessSound != null && audioSource != null)
+        {
+            audioSource.PlayOneShot(levelSuccessSound);
         }
     }
     

@@ -408,6 +408,18 @@ PrefabInstance:
       propertyPath: m_Name
       value: Players
       objectReference: {fileID: 0}
+    - target: {fileID: 6542573448385565777, guid: 16ca55f21eb5fa14cb1a1701810eb8e2, type: 3}
+      propertyPath: jumpSound
+      value: 
+      objectReference: {fileID: 8300000, guid: 0994c12e202f342459a4212e7287f7e8, type: 3}
+    - target: {fileID: 6542573448385565777, guid: 16ca55f21eb5fa14cb1a1701810eb8e2, type: 3}
+      propertyPath: deathSound
+      value: 
+      objectReference: {fileID: 8300000, guid: 4b4dd7245f6104c8c8eb07ccf6b386ed, type: 3}
+    - target: {fileID: 6542573448385565777, guid: 16ca55f21eb5fa14cb1a1701810eb8e2, type: 3}
+      propertyPath: checkpointSound
+      value: 
+      objectReference: {fileID: 8300000, guid: 79180f511d89441b9aa23ccae1992fe0, type: 3}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -447,6 +459,7 @@ MonoBehaviour:
   nextLevelButton: {fileID: 1976491290}
   pauseGameOnComplete: 1
   delayBeforeShow: 0.5
+  levelSuccessSound: {fileID: 8300000, guid: 2667a0a008b044e218b63df62e2be749, type: 3}
 --- !u!4 &1148092315
 Transform:
   m_ObjectHideFlags: 0
