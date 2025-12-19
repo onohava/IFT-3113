@@ -6864,6 +6864,14 @@ PrefabInstance:
       propertyPath: m_SortingOrder
       value: 2
       objectReference: {fileID: 0}
+    - target: {fileID: 4130370312442962779, guid: 16ca55f21eb5fa14cb1a1701810eb8e2, type: 3}
+      propertyPath: m_Intensity
+      value: 0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4130370312442962779, guid: 16ca55f21eb5fa14cb1a1701810eb8e2, type: 3}
+      propertyPath: m_PointLightOuterRadius
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 5754269692798762548, guid: 16ca55f21eb5fa14cb1a1701810eb8e2, type: 3}
       propertyPath: m_SortingOrder
       value: 2
