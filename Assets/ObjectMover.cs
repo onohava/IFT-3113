@@ -37,7 +37,30 @@ public class ObjectMover : MonoBehaviour
             SetTargetPosition(isMovingForward);
         }
     }
-    
+
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.name=="Player1")
+        {
+            collision.gameObject.GetComponentInParent<PlayerMovementInputSystem>().jumpForce1 *= 2;
+        }
+        else if(collision.name == "Player2")
+        {
+            collision.gameObject.GetComponentInParent<PlayerMovementInputSystem>().jumpForce2 *= 2;
+        }
+    }
+    private void OnTriggerExit2D(Collider2D collision)
+    {
+        if (collision.name == "Player1")
+        {
+            collision.gameObject.GetComponentInParent<PlayerMovementInputSystem>().jumpForce1 /= 2;
+        }
+        else if (collision.name == "Player2")
+        {
+            collision.gameObject.GetComponentInParent<PlayerMovementInputSystem>().jumpForce2 /= 2;
+        }
+    }
+
     private void SetTargetPosition(bool movingForward)
     {
         Vector3 direction = GetDirectionVector();

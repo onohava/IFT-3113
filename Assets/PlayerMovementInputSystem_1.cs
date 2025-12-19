@@ -1,3 +1,4 @@
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using static UnityEngine.Rendering.DebugUI;
@@ -5,8 +6,13 @@ using static UnityEngine.Rendering.DebugUI;
 public class PlayerMovementInputSystem : MonoBehaviour
 {
     [Header("Movement Settings")]
-    [SerializeField] private float moveSpeed;
-    [SerializeField] private float jumpForce;
+    [SerializeField] public float moveSpeed;
+    [SerializeField] public float jumpForce;
+
+    public float moveSpeed1;
+    public float jumpForce1;
+    public float moveSpeed2;
+    public float jumpForce2;
 
     [Header("Ground Check")]
     [SerializeField] private Transform groundCheck1;
@@ -73,11 +79,15 @@ public class PlayerMovementInputSystem : MonoBehaviour
         originalGravity1 = rb1.gravityScale;
         startPosition1 = player1.transform.position;
         currentRespawnPosition1 = startPosition1;
+        jumpForce1 = jumpForce;
+        moveSpeed1 = moveSpeed;
 
         rb2 = player2.GetComponent<Rigidbody2D>();
         originalGravity2 = rb2.gravityScale;
         startPosition2 = player2.transform.position;
         currentRespawnPosition2 = startPosition2;
+        jumpForce2 = jumpForce; 
+        moveSpeed2 = moveSpeed;
 
         originalDamping = rb1.linearDamping;
 
@@ -147,7 +157,10 @@ public class PlayerMovementInputSystem : MonoBehaviour
         {
             if (isGrounded1 && !isClimbing1 && !isOnRope1)
             {
-                rb1.AddForceY(jumpForce / 2, ForceMode2D.Impulse);
+                if(jumpForce1 != jumpForce)
+                    rb1.AddForceY(jumpForce1 / 2, ForceMode2D.Impulse);
+                else
+                    rb1.AddForceY(jumpForce / 2, ForceMode2D.Impulse);
                 StartCoroutine(JumpHoldWindow1());
                 PlayJumpSound();
             }
@@ -201,7 +214,10 @@ public class PlayerMovementInputSystem : MonoBehaviour
         {
             if (isGrounded2 && !isClimbing2 && !isOnRope2)
             {
-                rb2.AddForceY(jumpForce / 5, ForceMode2D.Impulse);
+                if(jumpForce2 != jumpForce)
+                    rb2.AddForceY(jumpForce2 / 5, ForceMode2D.Impulse);
+                else
+                    rb2.AddForceY(jumpForce / 5, ForceMode2D.Impulse);
                 StartCoroutine(JumpHoldWindow2());
                 PlayJumpSound();
             }
