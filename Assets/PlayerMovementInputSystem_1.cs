@@ -1,7 +1,8 @@
 using UnityEditor.Experimental.GraphView;
+using UnityEditor.SearchService;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using static UnityEngine.Rendering.DebugUI;
+using UnityEngine.SceneManagement;
 
 public class PlayerMovementInputSystem : MonoBehaviour
 {
@@ -81,7 +82,7 @@ public class PlayerMovementInputSystem : MonoBehaviour
         animator1 = player1.GetComponent<Animator>();
         originalGravity1 = rb1.gravityScale;
         startPosition1 = player1.transform.position;
-        currentRespawnPosition1 = startPosition1;
+        currentRespawnPosition1 = Vector3.zero;
         jumpForce1 = jumpForce;
         moveSpeed1 = moveSpeed;
 
@@ -89,7 +90,7 @@ public class PlayerMovementInputSystem : MonoBehaviour
         animator2 = player2.GetComponent<Animator>();
         originalGravity2 = rb2.gravityScale;
         startPosition2 = player2.transform.position;
-        currentRespawnPosition2 = startPosition2;
+        currentRespawnPosition2 = Vector3.zero;
         jumpForce2 = jumpForce; 
         moveSpeed2 = moveSpeed;
 
@@ -418,15 +419,22 @@ public class PlayerMovementInputSystem : MonoBehaviour
     {
         yield return new WaitForSeconds(delay);
 
-        player1.transform.position = currentRespawnPosition1;
-        player2.transform.position = new Vector2(currentRespawnPosition2.x, currentRespawnPosition2.y + 0.16f);
-        rb1.linearVelocity = Vector2.zero;
-        rb1.angularVelocity = 0f;
-        rb2.linearVelocity = Vector2.zero;
-        rb2.angularVelocity = 0f;
+        if(currentRespawnPosition1 == Vector3.zero)
+        {
+            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        }
+        else
+        {
+            player1.transform.position = currentRespawnPosition1;
+            player2.transform.position = new Vector2(currentRespawnPosition2.x, currentRespawnPosition2.y + 0.16f);
+            rb1.linearVelocity = Vector2.zero;
+            rb1.angularVelocity = 0f;
+            rb2.linearVelocity = Vector2.zero;
+            rb2.angularVelocity = 0f;
 
-        isDead1 = false;
-        isDead2 = false;
+            isDead1 = false;
+            isDead2 = false;
+        }
     }
 
     private System.Collections.IEnumerator JumpHoldWindow1()
