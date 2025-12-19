@@ -33,6 +33,8 @@ public class PlayerMovementInputSystem : MonoBehaviour
     private AudioSource audioSource;
 
     // Components
+    private Animator animator1;
+    private Animator animator2;
     private Rigidbody2D rb1;
     private Rigidbody2D rb2;
     private float originalGravity1;
@@ -76,6 +78,7 @@ public class PlayerMovementInputSystem : MonoBehaviour
     private void Awake()
     {      
         rb1 = player1.GetComponent<Rigidbody2D>();
+        animator1 = player1.GetComponent<Animator>();
         originalGravity1 = rb1.gravityScale;
         startPosition1 = player1.transform.position;
         currentRespawnPosition1 = startPosition1;
@@ -83,6 +86,7 @@ public class PlayerMovementInputSystem : MonoBehaviour
         moveSpeed1 = moveSpeed;
 
         rb2 = player2.GetComponent<Rigidbody2D>();
+        animator2 = player2.GetComponent<Animator>();
         originalGravity2 = rb2.gravityScale;
         startPosition2 = player2.transform.position;
         currentRespawnPosition2 = startPosition2;
@@ -197,6 +201,19 @@ public class PlayerMovementInputSystem : MonoBehaviour
             rb1.gravityScale = originalGravity1;
             rb1.AddForceX(moveInput1.x * moveSpeed, ForceMode2D.Force);
         }
+        // Player 1 Animation logic
+        if (moveInput1.x != 0)
+        {
+            animator1.SetBool("Moving", true);
+            if(moveInput1.x > 0)
+                player1.GetComponent<SpriteRenderer>().flipX = false;
+            if (moveInput1.x < 0)
+                player1.GetComponent<SpriteRenderer>().flipX = true;
+        }
+
+        else
+            animator1.SetBool("Moving", false);
+        animator1.SetBool("Jumping", !isGrounded1);
 
 
         // --- Player 2 Jump Logic ---
@@ -253,6 +270,20 @@ public class PlayerMovementInputSystem : MonoBehaviour
             rb2.gravityScale = originalGravity2;
             rb2.AddForceX(moveInput2.x * moveSpeed/3, ForceMode2D.Force);
         }
+
+        // Player 2 Animation logic
+        if (moveInput2.x != 0)
+        {
+            animator2.SetBool("Moving", true);            
+            if (moveInput2.x > 0)
+                player2.GetComponent<SpriteRenderer>().flipX = false;
+            if (moveInput2.x < 0)
+                player2.GetComponent<SpriteRenderer>().flipX = true;
+        }
+
+        else
+            animator2.SetBool("Moving", false);
+        animator2.SetBool("Jumping", !isGrounded2);
     }
 
     private void CheckGround(GameObject player)
