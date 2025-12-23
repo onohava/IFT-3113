@@ -26,7 +26,7 @@ The game evolves around the mechanics of **Light** and **Dark**. Heavily inspire
 2.  **Open in Unity**
     * Launch **Unity Hub**.
     * Click **Add** and select the cloned `IFT-3113` folder.
-    * *Recommended Version:* Unity 2021.3 LTS (or whichever version you used).
+    * *Recommended Version:* Unity 6 
 3.  **Play**
     * Open the project.
     * Navigate to `Assets/Scenes` and open `MainMenu` or `Level1`.
